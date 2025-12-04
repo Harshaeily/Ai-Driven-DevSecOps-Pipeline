@@ -1,0 +1,55 @@
+name: Security Scans
+
+on:
+  push:
+    branches: [ main ]
+  pull_request:
+    branches: [ main ]
+  workflow_dispatch:
+
+jobs:
+  semgrep_scan:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Set up Python
+        uses: actions/setup-python@v4
+        with:
+          python-version: '3.11'
+
+      - name: Install semgrep
+        run: pip install semgrep
+
+      - name: Run semgrep
+        run: |
+          mkdir -p results
+          semgrep --config semgrep-rules/ --json > results/semgrep.json || true
+
+      - name: Upload Semgrep artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: semgrep-results
+          path: results/semgrep.json
+
+  zap_scan:
+    runs-on: ubuntu-latest
+    needs: semgrep_scan
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Run OWASP ZAP
+        env:
+          ZAP_TARGET: ${{ secrets.ZAP_TARGET }}
+        run: |
+          mkdir -p results
+          docker run --rm -v $(pwd)/results:/zap/results owasp/zap2docker-stable \
+            zap-baseline.py -t "$ZAP_TARGET" -J /zap/results/zap.json || true
+
+      - name: Upload ZAP artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: zap-results
+          path: results/zap.json

@@ -1,0 +1,7 @@
+rules:
+  - id: python-bad-input
+    patterns:
+      - pattern: input($X)
+    message: "Using input() may lead to injection if not sanitized"
+    languages: [python]
+    severity: WARNING
