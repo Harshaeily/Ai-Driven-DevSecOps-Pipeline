@@ -46,7 +46,7 @@ jobs:
         run: |
           mkdir -p results
           docker run --rm -v $(pwd)/results:/zap/results owasp/zap2docker-stable \
-            zap-baseline.py -t "$ZAP_TARGET" -J /zap/results/zap.json || true
+           zap-baseline.py -t "$ZAP_TARGET" -J /zap/wrk/zap_report.json || true
 
       - name: Upload ZAP artifact
         uses: actions/upload-artifact@v4
