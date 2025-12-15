@@ -1,0 +1,555 @@
+import React, { useState, useEffect } from 'react';
+import {
+    Container,
+    Grid,
+    Card,
+    CardContent,
+    Typography,
+    Box,
+    Chip,
+    Table,
+    TableBody,
+    TableCell,
+    TableContainer,
+    TableHead,
+    TableRow,
+    Paper,
+    TextField,
+    Select,
+    MenuItem,
+    FormControl,
+    InputLabel,
+    Button,
+    Alert,
+    CircularProgress
+} from '@mui/material';
+import {
+    Security,
+    BugReport,
+    Warning,
+    CheckCircle,
+    Error,
+    Info,
+    TrendingUp,
+    FilterList,
+    Download
+} from '@mui/icons-material';
+import {
+    PieChart,
+    Pie,
+    Cell,
+    BarChart,
+    Bar,
+    LineChart,
+    Line,
+    XAxis,
+    YAxis,
+    CartesianGrid,
+    Tooltip,
+    Legend,
+    ResponsiveContainer
+} from 'recharts';
+import './App.css';
+
+// Sample data structure - in production, this would come from API
+const sampleData = {
+    report_id: "ai_analysis_20251215_083000",
+    generated_at: "2025-12-15T08:30:00Z",
+    policy: {
+        name: "Enterprise Security Policy",
+        version: "1.0"
+    },
+    summary: {
+        total_vulnerabilities: 45,
+        filtered_vulnerabilities: 18,
+        false_positives: 27,
+        false_positive_rate: 0.6,
+        by_severity: {
+            CRITICAL: 2,
+            HIGH: 5,
+            MEDIUM: 7,
+            LOW: 3,
+            INFO: 1
+        },
+        by_source: {
+            SAST: 12,
+            DAST: 6
+        }
+    },
+    top_priorities: [
+        {
+            id: "vuln_001",
+            title: "SQL Injection in login endpoint",
+            severity: "CRITICAL",
+            risk_score: 0.95,
+            priority: 1,
+            location: { file: "app.py", line_start: 75 },
+            cwe: "CWE-89",
+            owasp: "A03:2021-Injection",
+            remediation: { sla_days: 3, effort: "MEDIUM" }
+        },
+        {
+            id: "vuln_002",
+            title: "Command Injection in ping utility",
+            severity: "CRITICAL",
+            risk_score: 0.92,
+            priority: 1,
+            location: { file: "app.py", line_start: 145 },
+            cwe: "CWE-78",
+            owasp: "A03:2021-Injection",
+            remediation: { sla_days: 3, effort: "HIGH" }
+        }
+    ]
+};
+
+function App() {
+    const [data, setData] = useState(null);
+    const [loading, setLoading] = useState(true);
+    const [filter, setFilter] = useState({ severity: 'ALL', source: 'ALL', search: '' });
+    const [filteredVulns, setFilteredVulns] = useState([]);
+
+    useEffect(() => {
+        // Load data from file or API
+        loadData();
+    }, []);
+
+    useEffect(() => {
+        if (data) {
+            applyFilters();
+        }
+    }, [filter, data]);
+
+    const loadData = async () => {
+        try {
+            // Try to load from public/data/ai_analysis.json
+            const response = await fetch('./data/ai_analysis.json');
+            if (response.ok) {
+                const jsonData = await response.json();
+                setData(jsonData);
+            } else {
+                // Use sample data if file not found
+                setData(sampleData);
+            }
+        } catch (error) {
+            console.log('Using sample data:', error);
+            setData(sampleData);
+        } finally {
+            setLoading(false);
+        }
+    };
+
+    const applyFilters = () => {
+        if (!data || !data.top_priorities) return;
+
+        let filtered = data.top_priorities;
+
+        if (filter.severity !== 'ALL') {
+            filtered = filtered.filter(v => v.severity === filter.severity);
+        }
+
+        if (filter.source !== 'ALL') {
+            filtered = filtered.filter(v => v.source === filter.source);
+        }
+
+        if (filter.search) {
+            const searchLower = filter.search.toLowerCase();
+            filtered = filtered.filter(v =>
+                v.title.toLowerCase().includes(searchLower) ||
+                v.cwe?.toLowerCase().includes(searchLower) ||
+                v.location?.file?.toLowerCase().includes(searchLower)
+            );
+        }
+
+        setFilteredVulns(filtered);
+    };
+
+    const getSeverityColor = (severity) => {
+        const colors = {
+            CRITICAL: '#dc2626',
+            HIGH: '#ea580c',
+            MEDIUM: '#f59e0b',
+            LOW: '#3b82f6',
+            INFO: '#6b7280'
+        };
+        return colors[severity] || '#6b7280';
+    };
+
+    const getSeverityIcon = (severity) => {
+        if (severity === 'CRITICAL' || severity === 'HIGH') return <Error />;
+        if (severity === 'MEDIUM') return <Warning />;
+        return <Info />;
+    };
+
+    const exportToCSV = () => {
+        if (!data) return;
+
+        const csv = [
+            ['ID', 'Title', 'Severity', 'Risk Score', 'CWE', 'OWASP', 'File', 'Line', 'SLA Days'].join(','),
+            ...filteredVulns.map(v => [
+                v.id,
+                `"${v.title}"`,
+                v.severity,
+                v.risk_score,
+                v.cwe || '',
+                v.owasp || '',
+                v.location?.file || '',
+                v.location?.line_start || '',
+                v.remediation?.sla_days || ''
+            ].join(','))
+        ].join('\n');
+
+        const blob = new Blob([csv], { type: 'text/csv' });
+        const url = window.URL.createObjectURL(blob);
+        const a = document.createElement('a');
+        a.href = url;
+        a.download = 'vulnerabilities.csv';
+        a.click();
+    };
+
+    if (loading) {
+        return (
+            <Box display="flex" justifyContent="center" alignItems="center" minHeight="100vh">
+                <CircularProgress size={60} />
+            </Box>
+        );
+    }
+
+    if (!data) {
+        return (
+            <Container>
+                <Alert severity="error">Failed to load vulnerability data</Alert>
+            </Container>
+        );
+    }
+
+    const summary = data.summary || {};
+    const severityData = Object.entries(summary.by_severity || {}).map(([name, value]) => ({
+        name,
+        value,
+        color: getSeverityColor(name)
+    }));
+
+    const sourceData = Object.entries(summary.by_source || {}).map(([name, value]) => ({
+        name,
+        value
+    }));
+
+    return (
+        <div className="App">
+            {/* Header */}
+            <Box className="header" sx={{
+                background: 'linear-gradient(135deg, #1e293b 0%, #334155 100%)',
+                borderBottom: '1px solid rgba(255,255,255,0.1)',
+                py: 3,
+                mb: 4
+            }}>
+                <Container maxWidth="xl">
+                    <Box display="flex" alignItems="center" gap={2}>
+                        <Security sx={{ fontSize: 40, color: '#6366f1' }} />
+                        <Box>
+                            <Typography variant="h4" className="gradient-text" fontWeight="700">
+                                AI-Driven DevSecOps Dashboard
+                            </Typography>
+                            <Typography variant="body2" color="text.secondary">
+                                Security Vulnerability Analysis & Prioritization
+                            </Typography>
+                        </Box>
+                    </Box>
+                </Container>
+            </Box>
+
+            <Container maxWidth="xl">
+                {/* Summary Cards */}
+                <Grid container spacing={3} sx={{ mb: 4 }}>
+                    <Grid item xs={12} sm={6} md={3}>
+                        <Card className="glass-card hover-lift animate-fade-in">
+                            <CardContent>
+                                <Box display="flex" justifyContent="space-between" alignItems="center">
+                                    <Box>
+                                        <Typography color="text.secondary" variant="body2">
+                                            Total Findings
+                                        </Typography>
+                                        <Typography variant="h4" fontWeight="700">
+                                            {summary.total_vulnerabilities || 0}
+                                        </Typography>
+                                    </Box>
+                                    <BugReport sx={{ fontSize: 40, color: '#6366f1', opacity: 0.8 }} />
+                                </Box>
+                            </CardContent>
+                        </Card>
+                    </Grid>
+
+                    <Grid item xs={12} sm={6} md={3}>
+                        <Card className="glass-card hover-lift animate-fade-in" style={{ animationDelay: '0.1s' }}>
+                            <CardContent>
+                                <Box display="flex" justifyContent="space-between" alignItems="center">
+                                    <Box>
+                                        <Typography color="text.secondary" variant="body2">
+                                            After Filtering
+                                        </Typography>
+                                        <Typography variant="h4" fontWeight="700">
+                                            {summary.filtered_vulnerabilities || 0}
+                                        </Typography>
+                                    </Box>
+                                    <FilterList sx={{ fontSize: 40, color: '#10b981', opacity: 0.8 }} />
+                                </Box>
+                            </CardContent>
+                        </Card>
+                    </Grid>
+
+                    <Grid item xs={12} sm={6} md={3}>
+                        <Card className="glass-card hover-lift animate-fade-in" style={{ animationDelay: '0.2s' }}>
+                            <CardContent>
+                                <Box display="flex" justifyContent="space-between" alignItems="center">
+                                    <Box>
+                                        <Typography color="text.secondary" variant="body2">
+                                            False Positive Rate
+                                        </Typography>
+                                        <Typography variant="h4" fontWeight="700">
+                                            {((summary.false_positive_rate || 0) * 100).toFixed(0)}%
+                                        </Typography>
+                                    </Box>
+                                    <CheckCircle sx={{ fontSize: 40, color: '#f59e0b', opacity: 0.8 }} />
+                                </Box>
+                            </CardContent>
+                        </Card>
+                    </Grid>
+
+                    <Grid item xs={12} sm={6} md={3}>
+                        <Card className="glass-card hover-lift animate-fade-in" style={{ animationDelay: '0.3s' }}>
+                            <CardContent>
+                                <Box display="flex" justifyContent="space-between" alignItems="center">
+                                    <Box>
+                                        <Typography color="text.secondary" variant="body2">
+                                            Critical + High
+                                        </Typography>
+                                        <Typography variant="h4" fontWeight="700" className={summary.by_severity?.CRITICAL > 0 ? 'pulse' : ''}>
+                                            {(summary.by_severity?.CRITICAL || 0) + (summary.by_severity?.HIGH || 0)}
+                                        </Typography>
+                                    </Box>
+                                    <Error sx={{ fontSize: 40, color: '#dc2626', opacity: 0.8 }} />
+                                </Box>
+                            </CardContent>
+                        </Card>
+                    </Grid>
+                </Grid>
+
+                {/* Charts */}
+                <Grid container spacing={3} sx={{ mb: 4 }}>
+                    <Grid item xs={12} md={6}>
+                        <Card className="glass-card animate-fade-in">
+                            <CardContent>
+                                <Typography variant="h6" gutterBottom fontWeight="600">
+                                    Vulnerabilities by Severity
+                                </Typography>
+                                <ResponsiveContainer width="100%" height={300}>
+                                    <PieChart>
+                                        <Pie
+                                            data={severityData}
+                                            cx="50%"
+                                            cy="50%"
+                                            labelLine={false}
+                                            label={({ name, value }) => `${name}: ${value}`}
+                                            outerRadius={100}
+                                            fill="#8884d8"
+                                            dataKey="value"
+                                        >
+                                            {severityData.map((entry, index) => (
+                                                <Cell key={`cell-${index}`} fill={entry.color} />
+                                            ))}
+                                        </Pie>
+                                        <Tooltip />
+                                    </PieChart>
+                                </ResponsiveContainer>
+                            </CardContent>
+                        </Card>
+                    </Grid>
+
+                    <Grid item xs={12} md={6}>
+                        <Card className="glass-card animate-fade-in">
+                            <CardContent>
+                                <Typography variant="h6" gutterBottom fontWeight="600">
+                                    Findings by Source
+                                </Typography>
+                                <ResponsiveContainer width="100%" height={300}>
+                                    <BarChart data={sourceData}>
+                                        <CartesianGrid strokeDasharray="3 3" stroke="rgba(255,255,255,0.1)" />
+                                        <XAxis dataKey="name" stroke="#cbd5e1" />
+                                        <YAxis stroke="#cbd5e1" />
+                                        <Tooltip
+                                            contentStyle={{
+                                                backgroundColor: '#1e293b',
+                                                border: '1px solid rgba(255,255,255,0.1)',
+                                                borderRadius: '8px'
+                                            }}
+                                        />
+                                        <Bar dataKey="value" fill="#6366f1" radius={[8, 8, 0, 0]} />
+                                    </BarChart>
+                                </ResponsiveContainer>
+                            </CardContent>
+                        </Card>
+                    </Grid>
+                </Grid>
+
+                {/* Filters */}
+                <Card className="glass-card" sx={{ mb: 3 }}>
+                    <CardContent>
+                        <Grid container spacing={2} alignItems="center">
+                            <Grid item xs={12} sm={4}>
+                                <TextField
+                                    fullWidth
+                                    label="Search"
+                                    variant="outlined"
+                                    value={filter.search}
+                                    onChange={(e) => setFilter({ ...filter, search: e.target.value })}
+                                    size="small"
+                                />
+                            </Grid>
+                            <Grid item xs={12} sm={3}>
+                                <FormControl fullWidth size="small">
+                                    <InputLabel>Severity</InputLabel>
+                                    <Select
+                                        value={filter.severity}
+                                        label="Severity"
+                                        onChange={(e) => setFilter({ ...filter, severity: e.target.value })}
+                                    >
+                                        <MenuItem value="ALL">All Severities</MenuItem>
+                                        <MenuItem value="CRITICAL">Critical</MenuItem>
+                                        <MenuItem value="HIGH">High</MenuItem>
+                                        <MenuItem value="MEDIUM">Medium</MenuItem>
+                                        <MenuItem value="LOW">Low</MenuItem>
+                                        <MenuItem value="INFO">Info</MenuItem>
+                                    </Select>
+                                </FormControl>
+                            </Grid>
+                            <Grid item xs={12} sm={3}>
+                                <FormControl fullWidth size="small">
+                                    <InputLabel>Source</InputLabel>
+                                    <Select
+                                        value={filter.source}
+                                        label="Source"
+                                        onChange={(e) => setFilter({ ...filter, source: e.target.value })}
+                                    >
+                                        <MenuItem value="ALL">All Sources</MenuItem>
+                                        <MenuItem value="SAST">SAST</MenuItem>
+                                        <MenuItem value="DAST">DAST</MenuItem>
+                                    </Select>
+                                </FormControl>
+                            </Grid>
+                            <Grid item xs={12} sm={2}>
+                                <Button
+                                    fullWidth
+                                    variant="contained"
+                                    startIcon={<Download />}
+                                    onClick={exportToCSV}
+                                    sx={{
+                                        background: 'linear-gradient(135deg, #6366f1 0%, #ec4899 100%)',
+                                        '&:hover': {
+                                            background: 'linear-gradient(135deg, #4f46e5 0%, #db2777 100%)',
+                                        }
+                                    }}
+                                >
+                                    Export
+                                </Button>
+                            </Grid>
+                        </Grid>
+                    </CardContent>
+                </Card>
+
+                {/* Vulnerability Table */}
+                <Card className="glass-card">
+                    <CardContent>
+                        <Typography variant="h6" gutterBottom fontWeight="600" sx={{ mb: 2 }}>
+                            Top Priority Vulnerabilities ({filteredVulns.length})
+                        </Typography>
+                        <TableContainer>
+                            <Table>
+                                <TableHead>
+                                    <TableRow>
+                                        <TableCell>Priority</TableCell>
+                                        <TableCell>Title</TableCell>
+                                        <TableCell>Severity</TableCell>
+                                        <TableCell>Risk Score</TableCell>
+                                        <TableCell>CWE</TableCell>
+                                        <TableCell>Location</TableCell>
+                                        <TableCell>SLA</TableCell>
+                                    </TableRow>
+                                </TableHead>
+                                <TableBody>
+                                    {filteredVulns.map((vuln, index) => (
+                                        <TableRow
+                                            key={vuln.id}
+                                            className="animate-slide-in"
+                                            style={{ animationDelay: `${index * 0.05}s` }}
+                                            sx={{
+                                                '&:hover': {
+                                                    backgroundColor: 'rgba(99, 102, 241, 0.1)',
+                                                    cursor: 'pointer'
+                                                }
+                                            }}
+                                        >
+                                            <TableCell>
+                                                <Chip
+                                                    label={`P${vuln.priority}`}
+                                                    size="small"
+                                                    sx={{
+                                                        fontWeight: 'bold',
+                                                        background: vuln.priority === 1 ? '#dc2626' : '#f59e0b'
+                                                    }}
+                                                />
+                                            </TableCell>
+                                            <TableCell>
+                                                <Box display="flex" alignItems="center" gap={1}>
+                                                    {getSeverityIcon(vuln.severity)}
+                                                    <Typography variant="body2">{vuln.title}</Typography>
+                                                </Box>
+                                            </TableCell>
+                                            <TableCell>
+                                                <Chip
+                                                    label={vuln.severity}
+                                                    size="small"
+                                                    sx={{
+                                                        backgroundColor: getSeverityColor(vuln.severity),
+                                                        fontWeight: 'bold'
+                                                    }}
+                                                />
+                                            </TableCell>
+                                            <TableCell>
+                                                <Typography variant="body2" fontWeight="600">
+                                                    {(vuln.risk_score * 100).toFixed(0)}%
+                                                </Typography>
+                                            </TableCell>
+                                            <TableCell>
+                                                <Chip label={vuln.cwe || 'N/A'} size="small" variant="outlined" />
+                                            </TableCell>
+                                            <TableCell>
+                                                <Typography variant="body2" color="text.secondary">
+                                                    {vuln.location?.file}:{vuln.location?.line_start}
+                                                </Typography>
+                                            </TableCell>
+                                            <TableCell>
+                                                <Typography variant="body2">
+                                                    {vuln.remediation?.sla_days} days
+                                                </Typography>
+                                            </TableCell>
+                                        </TableRow>
+                                    ))}
+                                </TableBody>
+                            </Table>
+                        </TableContainer>
+                    </CardContent>
+                </Card>
+
+                {/* Footer */}
+                <Box sx={{ mt: 4, mb: 2, textAlign: 'center' }}>
+                    <Typography variant="body2" color="text.secondary">
+                        Generated: {new Date(data.generated_at).toLocaleString()} |
+                        Policy: {data.policy?.name} v{data.policy?.version}
+                    </Typography>
+                </Box>
+            </Container>
+        </div>
+    );
+}
+
+export default App;

@@ -1,0 +1,295 @@
+---
+# AI-Driven DevSecOps Pipeline - Security Policy Configuration
+# This file defines company-specific security rules, thresholds, and risk scoring parameters
+
+version: "1.0"
+policy_name: "Enterprise Security Policy"
+last_updated: "2025-12-15"
+
+# Severity Configuration
+severity:
+  # Weight assigned to each severity level (0.0 - 1.0)
+  weights:
+    CRITICAL: 1.0
+    HIGH: 0.75
+    MEDIUM: 0.5
+    LOW: 0.25
+    INFO: 0.1
+  
+  # Minimum severity to include in reports
+  threshold: "LOW"
+  
+  # Auto-fail CI/CD pipeline if these severities are found
+  blocking_severities:
+    - CRITICAL
+    - HIGH
+
+# False Positive Detection Rules
+false_positive_detection:
+  enabled: true
+  confidence_threshold: 0.7  # 0.0 - 1.0, higher = stricter filtering
+  
+  # Patterns that indicate false positives
+  exclusion_patterns:
+    # File patterns to ignore
+    file_patterns:
+      - "*/test/*"
+      - "*/tests/*"
+      - "*_test.py"
+      - "*_test.js"
+      - "*/node_modules/*"
+      - "*/vendor/*"
+      - "*.min.js"
+      - "*/dist/*"
+      - "*/build/*"
+    
+    # Code patterns that are safe
+    code_patterns:
+      - pattern: "# nosec"
+        description: "Developer-approved security exception"
+      - pattern: "# pragma: allowlist"
+        description: "Explicitly allowed by security team"
+      - pattern: "TODO: security review"
+        description: "Marked for future review"
+    
+    # Comment indicators that suggest intentional code
+    comment_indicators:
+      - "SAFE:"
+      - "REVIEWED:"
+      - "APPROVED:"
+
+# Risk Scoring Configuration
+risk_scoring:
+  # Multi-factor risk calculation weights (must sum to 1.0)
+  factors:
+    severity: 0.30          # Base severity from scanner
+    exploitability: 0.25    # How easy to exploit
+    business_impact: 0.20   # Impact on business operations
+    exposure: 0.15          # Public vs internal exposure
+    compliance: 0.10        # Regulatory/compliance impact
+  
+  # Exploitability scoring
+  exploitability:
+    PROVEN_EXPLOIT: 1.0      # Known exploit exists
+    FUNCTIONAL_EXPLOIT: 0.9  # Functional exploit demonstrated
+    POC_EXPLOIT: 0.7         # Proof of concept exists
+    THEORETICAL: 0.4         # Theoretically exploitable
+    UNLIKELY: 0.1            # Difficult to exploit
+  
+  # Business impact levels
+  business_impact:
+    CATASTROPHIC: 1.0   # Complete system compromise
+    SEVERE: 0.8         # Major data breach or service disruption
+    MODERATE: 0.5       # Limited data exposure or degradation
+    MINOR: 0.3          # Minimal impact
+    NEGLIGIBLE: 0.1     # No significant impact
+  
+  # Exposure levels
+  exposure:
+    PUBLIC_INTERNET: 1.0      # Publicly accessible
+    AUTHENTICATED_EXTERNAL: 0.7  # External but requires auth
+    INTERNAL_NETWORK: 0.4     # Internal network only
+    LOCALHOST: 0.1            # Local access only
+
+# Compliance Framework Mappings
+compliance:
+  frameworks:
+    - name: "OWASP Top 10 2021"
+      enabled: true
+      categories:
+        - A01:2021-Broken Access Control
+        - A02:2021-Cryptographic Failures
+        - A03:2021-Injection
+        - A04:2021-Insecure Design
+        - A05:2021-Security Misconfiguration
+        - A06:2021-Vulnerable and Outdated Components
+        - A07:2021-Identification and Authentication Failures
+        - A08:2021-Software and Data Integrity Failures
+        - A09:2021-Security Logging and Monitoring Failures
+        - A10:2021-Server-Side Request Forgery
+    
+    - name: "CWE Top 25"
+      enabled: true
+    
+    - name: "PCI-DSS 4.0"
+      enabled: false
+    
+    - name: "HIPAA"
+      enabled: false
+    
+    - name: "SOC 2"
+      enabled: false
+
+# Vulnerability Prioritization Rules
+prioritization:
+  # Maximum number of top-priority vulnerabilities to highlight
+  top_priority_limit: 20
+  
+  # Auto-prioritize vulnerabilities matching these criteria
+  auto_priority_rules:
+    - name: "Critical Authentication Bypass"
+      conditions:
+        severity: ["CRITICAL", "HIGH"]
+        cwe: ["CWE-287", "CWE-306", "CWE-798"]
+      priority: 1
+    
+    - name: "SQL Injection"
+      conditions:
+        severity: ["CRITICAL", "HIGH"]
+        cwe: ["CWE-89"]
+      priority: 1
+    
+    - name: "Remote Code Execution"
+      conditions:
+        severity: ["CRITICAL"]
+        cwe: ["CWE-94", "CWE-78", "CWE-502"]
+      priority: 1
+    
+    - name: "Sensitive Data Exposure"
+      conditions:
+        severity: ["HIGH", "MEDIUM"]
+        cwe: ["CWE-200", "CWE-311", "CWE-312", "CWE-319"]
+      priority: 2
+    
+    - name: "XSS Vulnerabilities"
+      conditions:
+        severity: ["HIGH", "MEDIUM"]
+        cwe: ["CWE-79", "CWE-80"]
+      priority: 2
+
+# Remediation SLA Configuration
+remediation_sla:
+  # Days to remediate based on priority
+  by_priority:
+    1: 7    # Critical - 1 week
+    2: 14   # High - 2 weeks
+    3: 30   # Medium - 1 month
+    4: 60   # Low - 2 months
+    5: 90   # Info - 3 months
+  
+  # Days to remediate based on severity
+  by_severity:
+    CRITICAL: 3
+    HIGH: 14
+    MEDIUM: 30
+    LOW: 60
+    INFO: 90
+
+# Context-Aware Rules
+context_rules:
+  # Application type affects risk scoring
+  application_types:
+    public_web_app:
+      exposure_multiplier: 1.5
+      description: "Public-facing web application"
+    
+    internal_api:
+      exposure_multiplier: 0.8
+      description: "Internal API service"
+    
+    microservice:
+      exposure_multiplier: 1.0
+      description: "Microservice component"
+    
+    batch_job:
+      exposure_multiplier: 0.5
+      description: "Background batch processing"
+  
+  # Environment-specific rules
+  environments:
+    production:
+      severity_multiplier: 1.5
+      blocking_enabled: true
+    
+    staging:
+      severity_multiplier: 1.2
+      blocking_enabled: true
+    
+    development:
+      severity_multiplier: 1.0
+      blocking_enabled: false
+
+# Reporting Configuration
+reporting:
+  # Include these sections in reports
+  sections:
+    - executive_summary
+    - vulnerability_overview
+    - top_priorities
+    - trend_analysis
+    - compliance_status
+    - remediation_tracking
+  
+  # Export formats
+  export_formats:
+    - json
+    - csv
+    - pdf
+    - html
+  
+  # Metrics to track
+  metrics:
+    - total_vulnerabilities
+    - vulnerabilities_by_severity
+    - false_positive_rate
+    - mean_time_to_remediate
+    - compliance_score
+    - trend_over_time
+
+# AI/ML Configuration (for future enhancements)
+ai_ml:
+  # Enable ML-based false positive detection
+  ml_false_positive_detection: false
+  
+  # Enable historical learning
+  historical_learning: false
+  
+  # Confidence threshold for ML predictions
+  ml_confidence_threshold: 0.8
+  
+  # Model update frequency (days)
+  model_update_frequency: 30
+
+# Integration Settings
+integrations:
+  # GitHub integration
+  github:
+    enabled: true
+    create_issues: true
+    issue_labels:
+      - "security"
+      - "vulnerability"
+    
+  # Slack notifications
+  slack:
+    enabled: false
+    webhook_url: ""
+    notify_on:
+      - CRITICAL
+      - HIGH
+  
+  # JIRA integration
+  jira:
+    enabled: false
+    project_key: ""
+    issue_type: "Security Bug"
+
+# Custom Rules (Company-Specific)
+custom_rules:
+  # Add your organization-specific rules here
+  - name: "Hardcoded API Keys"
+    pattern: "(api[_-]?key|apikey|api[_-]?secret)\\s*=\\s*['\"][a-zA-Z0-9]{20,}['\"]"
+    severity: "CRITICAL"
+    message: "Hardcoded API key detected"
+    remediation: "Move API keys to environment variables or secure vault"
+  
+  - name: "Weak Password Policy"
+    pattern: "password.*length.*<.*8"
+    severity: "MEDIUM"
+    message: "Password length requirement is too weak"
+    remediation: "Enforce minimum 12-character passwords"
+  
+  - name: "Missing Rate Limiting"
+    description: "API endpoints without rate limiting"
+    severity: "MEDIUM"
+    tags: ["api", "dos"]

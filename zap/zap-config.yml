@@ -1,0 +1,158 @@
+# OWASP ZAP Configuration for AI-Driven DevSecOps Pipeline
+# This configuration customizes ZAP scanning behavior
+
+# Scan Policy Configuration
+env:
+  contexts:
+    - name: "VulnerableApp"
+      urls:
+        - "http://localhost:5000.*"
+      includePaths:
+        - "http://localhost:5000/.*"
+      excludePaths:
+        - "http://localhost:5000/static/.*"
+        - "http://localhost:5000/logout.*"
+      authentication:
+        method: "form"
+        loginUrl: "http://localhost:5000/login"
+        loginRequestData: "username={%username%}&password={%password%}"
+      users:
+        - name: "testuser"
+          credentials:
+            username: "admin"
+            password: "admin123"
+
+  # Active Scan Configuration
+  activeScan:
+    policy: "Default Policy"
+    maxRuleDurationInMins: 5
+    maxScanDurationInMins: 30
+    threadPerHost: 2
+    delayInMs: 0
+    
+  # Passive Scan Configuration  
+  passiveScan:
+    enableTags: true
+    
+  # Spider Configuration
+  spider:
+    maxDuration: 10
+    maxDepth: 5
+    maxChildren: 10
+    acceptCookies: true
+    
+  # Ajax Spider Configuration
+  ajaxSpider:
+    maxDuration: 5
+    maxCrawlDepth: 3
+    numberOfBrowsers: 1
+
+# Alert Filters
+alertFilters:
+  # Reduce noise from low-priority alerts
+  - ruleId: 10021  # X-Content-Type-Options Header Missing
+    newRisk: "INFO"
+  - ruleId: 10020  # X-Frame-Options Header Not Set
+    newRisk: "LOW"
+  - ruleId: 10096  # Timestamp Disclosure
+    newRisk: "INFO"
+
+# Rules Configuration
+rules:
+  # Disable certain rules that generate too many false positives
+  - id: 40012  # Cross Site Scripting (Reflected) - Reduce sensitivity
+    threshold: "HIGH"
+  - id: 40014  # Cross Site Scripting (Persistent)
+    threshold: "MEDIUM"
+  - id: 40018  # SQL Injection
+    threshold: "LOW"  # Keep sensitive for SQL injection
+  - id: 90019  # Code Injection
+    threshold: "LOW"
+  - id: 90020  # Remote OS Command Injection
+    threshold: "LOW"
+
+# Custom Scan Policy
+scanPolicy:
+  name: "AI-DevSecOps-Policy"
+  description: "Custom scan policy for AI-Driven DevSecOps Pipeline"
+  
+  # Plugin configurations
+  plugins:
+    # Injection attacks
+    - id: 40018  # SQL Injection
+      enabled: true
+      attackStrength: "HIGH"
+    - id: 40019  # SQL Injection - MySQL
+      enabled: true
+      attackStrength: "HIGH"
+    - id: 40020  # SQL Injection - Hypersonic SQL
+      enabled: true
+      attackStrength: "MEDIUM"
+    - id: 40021  # SQL Injection - Oracle
+      enabled: true
+      attackStrength: "MEDIUM"
+    - id: 40022  # SQL Injection - PostgreSQL
+      enabled: true
+      attackStrength: "MEDIUM"
+    
+    # XSS attacks
+    - id: 40012  # Cross Site Scripting (Reflected)
+      enabled: true
+      attackStrength: "HIGH"
+    - id: 40014  # Cross Site Scripting (Persistent)
+      enabled: true
+      attackStrength: "HIGH"
+    - id: 40016  # Cross Site Scripting (Persistent) - Prime
+      enabled: true
+      attackStrength: "MEDIUM"
+    - id: 40017  # Cross Site Scripting (Persistent) - Spider
+      enabled: true
+      attackStrength: "MEDIUM"
+    
+    # Path Traversal
+    - id: 6  # Path Traversal
+      enabled: true
+      attackStrength: "HIGH"
+    
+    # Remote File Inclusion
+    - id: 7  # Remote File Inclusion
+      enabled: true
+      attackStrength: "MEDIUM"
+    
+    # Command Injection
+    - id: 90020  # Remote OS Command Injection
+      enabled: true
+      attackStrength: "HIGH"
+    
+    # CRLF Injection
+    - id: 40003  # CRLF Injection
+      enabled: true
+      attackStrength: "MEDIUM"
+    
+    # Parameter Tampering
+    - id: 40008  # Parameter Tampering
+      enabled: true
+      attackStrength: "MEDIUM"
+    
+    # Server Side Include
+    - id: 40009  # Server Side Include
+      enabled: true
+      attackStrength: "MEDIUM"
+    
+    # External Redirect
+    - id: 20019  # External Redirect
+      enabled: true
+      attackStrength: "MEDIUM"
+    
+    # CSRF
+    - id: 10202  # Absence of Anti-CSRF Tokens
+      enabled: true
+      attackStrength: "MEDIUM"
+
+# Output Configuration
+output:
+  format: "json"
+  includePassive: true
+  includeActive: true
+  includeAlerts: true
+  includeMessages: false

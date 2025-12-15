@@ -1,7 +1,336 @@
 rules:
+  # ============================================
+  # SQL Injection Vulnerabilities
+  # ============================================
+  - id: python-sql-injection-format
+    patterns:
+      - pattern-either:
+          - pattern: $CURSOR.execute("..." % ...)
+          - pattern: $CURSOR.execute("..." + ...)
+          - pattern: $CURSOR.execute(f"...")
+          - pattern: $CURSOR.execute("...".format(...))
+    message: "SQL injection vulnerability: SQL query uses string formatting/concatenation instead of parameterized queries"
+    languages: [python]
+    severity: ERROR
+    metadata:
+      cwe: "CWE-89"
+      owasp: "A03:2021-Injection"
+      category: "security"
+      confidence: "HIGH"
+    fix: "Use parameterized queries: cursor.execute('SELECT * FROM users WHERE id = ?', (user_id,))"
+
+  - id: python-sql-injection-raw-query
+    patterns:
+      - pattern-either:
+          - pattern: $MODEL.objects.raw($QUERY)
+          - pattern: $MODEL.objects.extra(where=[$QUERY])
+    message: "Potential SQL injection in Django raw query"
+    languages: [python]
+    severity: ERROR
+    metadata:
+      cwe: "CWE-89"
+      owasp: "A03:2021-Injection"
+
+  # ============================================
+  # Cross-Site Scripting (XSS)
+  # ============================================
+  - id: python-flask-render-template-string
+    patterns:
+      - pattern: flask.render_template_string($TEMPLATE, ...)
+      - pattern-not: flask.render_template_string("...", ...)
+    message: "XSS vulnerability: render_template_string with user input can lead to XSS"
+    languages: [python]
+    severity: ERROR
+    metadata:
+      cwe: "CWE-79"
+      owasp: "A03:2021-Injection"
+
+  - id: python-jinja2-autoescape-disabled
+    patterns:
+      - pattern: jinja2.Environment(autoescape=False, ...)
+    message: "XSS risk: Jinja2 autoescape is disabled"
+    languages: [python]
+    severity: WARNING
+    metadata:
+      cwe: "CWE-79"
+      owasp: "A03:2021-Injection"
+
+  # ============================================
+  # Authentication & Authorization
+  # ============================================
+  - id: python-hardcoded-password
+    patterns:
+      - pattern-either:
+          - pattern: $VAR = "..."
+          - pattern: $DICT["..."] = "..."
+      - metavariable-regex:
+          metavariable: $VAR
+          regex: .*(password|passwd|pwd|secret|token|api_key|apikey).*
+    message: "Hardcoded password or secret detected"
+    languages: [python]
+    severity: ERROR
+    metadata:
+      cwe: "CWE-798"
+      owasp: "A07:2021-Identification and Authentication Failures"
+      category: "security"
+
+  - id: python-weak-hash-function
+    patterns:
+      - pattern-either:
+          - pattern: hashlib.md5(...)
+          - pattern: hashlib.sha1(...)
+    message: "Weak cryptographic hash function (MD5/SHA1) - use SHA256 or better"
+    languages: [python]
+    severity: WARNING
+    metadata:
+      cwe: "CWE-327"
+      owasp: "A02:2021-Cryptographic Failures"
+
+  - id: python-flask-debug-enabled
+    patterns:
+      - pattern: $APP.run(debug=True, ...)
+    message: "Flask debug mode enabled - should be disabled in production"
+    languages: [python]
+    severity: WARNING
+    metadata:
+      cwe: "CWE-489"
+      owasp: "A05:2021-Security Misconfiguration"
+
+  # ============================================
+  # Command Injection
+  # ============================================
+  - id: python-command-injection-os-system
+    patterns:
+      - pattern-either:
+          - pattern: os.system($CMD)
+          - pattern: os.popen($CMD)
+          - pattern: subprocess.call($CMD, shell=True)
+          - pattern: subprocess.run($CMD, shell=True)
+          - pattern: subprocess.Popen($CMD, shell=True)
+      - pattern-not: os.system("...")
+      - pattern-not: subprocess.call("...", shell=True)
+    message: "Command injection vulnerability: avoid shell=True with user input"
+    languages: [python]
+    severity: ERROR
+    metadata:
+      cwe: "CWE-78"
+      owasp: "A03:2021-Injection"
+
+  - id: python-eval-use
+    patterns:
+      - pattern: eval($INPUT)
+      - pattern-not: eval("...")
+    message: "Code injection risk: eval() with user input is dangerous"
+    languages: [python]
+    severity: ERROR
+    metadata:
+      cwe: "CWE-95"
+      owasp: "A03:2021-Injection"
+
+  # ============================================
+  # Path Traversal
+  # ============================================
+  - id: python-path-traversal
+    patterns:
+      - pattern-either:
+          - pattern: open($PATH, ...)
+          - pattern: os.path.join($BASE, $PATH)
+      - pattern-not: open("...", ...)
+    message: "Path traversal vulnerability: validate and sanitize file paths"
+    languages: [python]
+    severity: WARNING
+    metadata:
+      cwe: "CWE-22"
+      owasp: "A01:2021-Broken Access Control"
+
+  # ============================================
+  # Insecure Deserialization
+  # ============================================
+  - id: python-pickle-unsafe
+    patterns:
+      - pattern-either:
+          - pattern: pickle.loads($DATA)
+          - pattern: pickle.load($FILE)
+    message: "Insecure deserialization: pickle can execute arbitrary code"
+    languages: [python]
+    severity: ERROR
+    metadata:
+      cwe: "CWE-502"
+      owasp: "A08:2021-Software and Data Integrity Failures"
+
+  - id: python-yaml-unsafe-load
+    patterns:
+      - pattern: yaml.load($DATA)
+      - pattern-not: yaml.load($DATA, Loader=yaml.SafeLoader)
+    message: "Unsafe YAML deserialization - use yaml.safe_load() instead"
+    languages: [python]
+    severity: ERROR
+    metadata:
+      cwe: "CWE-502"
+      owasp: "A08:2021-Software and Data Integrity Failures"
+
+  # ============================================
+  # Sensitive Data Exposure
+  # ============================================
+  - id: python-print-sensitive-data
+    patterns:
+      - pattern: print($VAR)
+      - metavariable-regex:
+          metavariable: $VAR
+          regex: .*(password|token|secret|key|credential).*
+    message: "Sensitive data may be logged or printed"
+    languages: [python]
+    severity: WARNING
+    metadata:
+      cwe: "CWE-532"
+      owasp: "A09:2021-Security Logging and Monitoring Failures"
+
+  - id: python-flask-secret-key-weak
+    patterns:
+      - pattern: $APP.config['SECRET_KEY'] = "..."
+      - metavariable-regex:
+          metavariable: $APP
+          regex: .*
+    message: "Flask SECRET_KEY should be strong and random"
+    languages: [python]
+    severity: WARNING
+    metadata:
+      cwe: "CWE-330"
+      owasp: "A02:2021-Cryptographic Failures"
+
+  # ============================================
+  # SSRF (Server-Side Request Forgery)
+  # ============================================
+  - id: python-ssrf-requests
+    patterns:
+      - pattern-either:
+          - pattern: requests.get($URL, ...)
+          - pattern: requests.post($URL, ...)
+          - pattern: urllib.request.urlopen($URL)
+      - pattern-not: requests.get("...", ...)
+    message: "SSRF vulnerability: validate and whitelist URLs before making requests"
+    languages: [python]
+    severity: WARNING
+    metadata:
+      cwe: "CWE-918"
+      owasp: "A10:2021-Server-Side Request Forgery"
+
+  # ============================================
+  # Insecure Random
+  # ============================================
+  - id: python-insecure-random
+    patterns:
+      - pattern-either:
+          - pattern: random.random()
+          - pattern: random.randint(...)
+          - pattern: random.choice(...)
+    message: "Insecure random number generator - use secrets module for security-sensitive operations"
+    languages: [python]
+    severity: INFO
+    metadata:
+      cwe: "CWE-330"
+      owasp: "A02:2021-Cryptographic Failures"
+
+  # ============================================
+  # Insecure Input Handling
+  # ============================================
   - id: python-bad-input
     patterns:
       - pattern: input($X)
     message: "Using input() may lead to injection if not sanitized"
     languages: [python]
     severity: WARNING
+    metadata:
+      cwe: "CWE-20"
+      category: "security"
+
+  # ============================================
+  # XML External Entity (XXE)
+  # ============================================
+  - id: python-xxe-vulnerability
+    patterns:
+      - pattern-either:
+          - pattern: xml.etree.ElementTree.parse($FILE)
+          - pattern: xml.etree.ElementTree.fromstring($DATA)
+    message: "XXE vulnerability: XML parser may be vulnerable to external entity attacks"
+    languages: [python]
+    severity: WARNING
+    metadata:
+      cwe: "CWE-611"
+      owasp: "A05:2021-Security Misconfiguration"
+
+  # ============================================
+  # LDAP Injection
+  # ============================================
+  - id: python-ldap-injection
+    patterns:
+      - pattern: ldap.search($FILTER)
+      - pattern-not: ldap.search("...")
+    message: "LDAP injection: sanitize user input in LDAP filters"
+    languages: [python]
+    severity: ERROR
+    metadata:
+      cwe: "CWE-90"
+      owasp: "A03:2021-Injection"
+
+  # ============================================
+  # Regex DoS (ReDoS)
+  # ============================================
+  - id: python-redos-vulnerability
+    patterns:
+      - pattern: re.compile($PATTERN)
+      - metavariable-regex:
+          metavariable: $PATTERN
+          regex: .*(\+\*|\*\+|\{\d+,\}\*).*
+    message: "Potential ReDoS vulnerability: complex regex pattern"
+    languages: [python]
+    severity: INFO
+    metadata:
+      cwe: "CWE-1333"
+      category: "security"
+
+  # ============================================
+  # CSRF Protection
+  # ============================================
+  - id: python-flask-csrf-disabled
+    patterns:
+      - pattern: $APP.config['WTF_CSRF_ENABLED'] = False
+    message: "CSRF protection is disabled"
+    languages: [python]
+    severity: ERROR
+    metadata:
+      cwe: "CWE-352"
+      owasp: "A01:2021-Broken Access Control"
+
+  # ============================================
+  # Insecure SSL/TLS
+  # ============================================
+  - id: python-ssl-verification-disabled
+    patterns:
+      - pattern-either:
+          - pattern: requests.get(..., verify=False)
+          - pattern: requests.post(..., verify=False)
+          - pattern: urllib.request.urlopen(..., context=ssl._create_unverified_context())
+    message: "SSL/TLS verification is disabled - man-in-the-middle attack risk"
+    languages: [python]
+    severity: ERROR
+    metadata:
+      cwe: "CWE-295"
+      owasp: "A02:2021-Cryptographic Failures"
+
+  # ============================================
+  # Information Disclosure
+  # ============================================
+  - id: python-exception-message-disclosure
+    patterns:
+      - pattern: |
+          try:
+              ...
+          except $EX as $E:
+              return str($E)
+    message: "Exception details may disclose sensitive information"
+    languages: [python]
+    severity: INFO
+    metadata:
+      cwe: "CWE-209"
+      owasp: "A05:2021-Security Misconfiguration"

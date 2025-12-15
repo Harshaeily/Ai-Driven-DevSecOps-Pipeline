@@ -1,0 +1,37 @@
+.App {
+    min-height: 100vh;
+}
+
+.header {
+    position: sticky;
+    top: 0;
+    z-index: 100;
+    backdrop-filter: blur(10px);
+}
+
+/* MUI theme overrides */
+.MuiCard-root {
+    transition: all 0.3s ease !important;
+}
+
+.MuiTableRow-root:hover {
+    transition: background-color 0.2s ease;
+}
+
+.MuiChip-root {
+    font-weight: 600 !important;
+}
+
+/* Custom scrollbar for table */
+.MuiTableContainer-root {
+    max-height: 600px;
+    overflow-y: auto;
+}
+
+/* Responsive adjustments */
+@media (max-width: 600px) {
+    .MuiTableCell-root {
+        padding: 8px 4px !important;
+        font-size: 0.75rem !important;
+    }
+}
