@@ -46,6 +46,10 @@ class RemediationEngine:
         """
         cwe = vuln.cwe
         
+        # Handle CWE as list (take first element) or string
+        if isinstance(cwe, list):
+            cwe = cwe[0] if cwe else None
+        
         # Try to find specific remediation for CWE
         if cwe and cwe in self.remediation_templates:
             template = self.remediation_templates[cwe]
