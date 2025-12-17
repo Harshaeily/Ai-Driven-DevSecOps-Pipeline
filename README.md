@@ -365,7 +365,10 @@ This project is licensed under the MIT License - see [LICENSE](LICENSE) for deta
 
 ## 👥 Authors
 
-- **Your Name** - *Initial work* - Final Year Project
+- **Anantha Krishnan K**
+- **Andrew C Anil**
+- **Harsha Eily Thomas**
+- **Jayashankar N** - *Initial work* - Final Year Project
 
 ## 🙏 Acknowledgments
 
