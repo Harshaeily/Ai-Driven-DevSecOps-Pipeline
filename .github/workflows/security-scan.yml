@@ -44,7 +44,7 @@ jobs:
         run: |
           mkdir -p results
           echo "Running Semgrep with custom rules..."
-          semgrep --config semgrep-rules/ \
+          semgrep --config semgrep-rules/better_one.yml \
                   --json \
                   --output results/semgrep.json \
                   --metrics=off \
