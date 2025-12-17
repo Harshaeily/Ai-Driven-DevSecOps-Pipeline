@@ -1,13 +1,23 @@
 # AI-Driven DevSecOps Pipeline
 
-[![Security Scan](https://github.com/yourusername/Ai-Driven-DevSecOps-Pipeline/workflows/AI-Driven%20DevSecOps%20Pipeline/badge.svg)](https://github.com/yourusername/Ai-Driven-DevSecOps-Pipeline/actions)
+<div align="center">
+
+[![Security Scan](https://github.com/renegade475/Ai-Driven-DevSecOps-Pipeline/workflows/AI-Driven%20DevSecOps%20Pipeline/badge.svg)](https://github.com/renegade475/Ai-Driven-DevSecOps-Pipeline/actions)
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
+[![Python 3.11+](https://img.shields.io/badge/python-3.11+-blue.svg)](https://www.python.org/downloads/)
+[![Node.js 18+](https://img.shields.io/badge/node-18+-green.svg)](https://nodejs.org/)
+[![Vercel](https://img.shields.io/badge/Deployed%20on-Vercel-black)](https://vercel.com)
+[![PRs Welcome](https://img.shields.io/badge/PRs-welcome-brightgreen.svg)](CONTRIBUTING.md)
+
+**[Live Dashboard](https://ai-driven-dev-sec-ops-pipeline.vercel.app)** | **[Documentation](docs/)** | **[Quick Start](#-quick-start)** | **[Team Guide](TEAM_HANDOVER.md)**
+
+</div>
+
+---
 
 > **Enterprise-grade security automation that integrates seamlessly into your CI/CD pipeline**
 
 An intelligent, AI-powered DevSecOps pipeline that automatically performs SAST and DAST security scans, filters false positives, prioritizes vulnerabilities based on risk, and provides actionable remediation guidance—all integrated into GitHub Actions.
-
-![Dashboard Preview](docs/images/dashboard-preview.png)
 
 ## 🎯 Project Overview
 
