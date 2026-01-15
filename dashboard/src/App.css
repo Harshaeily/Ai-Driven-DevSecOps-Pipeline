@@ -1,37 +1,308 @@
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap');
+
+* {
+    font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif !important;
+}
+
 .App {
     min-height: 100vh;
+    background: #0a0a0f;
+    background-image:
+        linear-gradient(rgba(0, 217, 255, 0.03) 1px, transparent 1px),
+        linear-gradient(90deg, rgba(0, 217, 255, 0.03) 1px, transparent 1px);
+    background-size: 50px 50px;
+    position: relative;
+    overflow-x: hidden;
 }
 
-.header {
-    position: sticky;
+/* Subtle ambient glow */
+.App::before {
+    content: '';
+    position: fixed;
+    top: -50%;
+    left: -50%;
+    width: 200%;
+    height: 200%;
+    background: radial-gradient(circle at 50% 50%, rgba(0, 217, 255, 0.05) 0%, transparent 50%);
+    pointer-events: none;
+    z-index: 0;
+    animation: ambientPulse 8s ease-in-out infinite;
+}
+
+@keyframes ambientPulse {
+
+    0%,
+    100% {
+        opacity: 0.3;
+    }
+
+    50% {
+        opacity: 0.6;
+    }
+}
+
+.glass-card {
+    background: rgba(10, 15, 25, 0.6) !important;
+    border: 1px solid rgba(0, 217, 255, 0.3) !important;
+    box-shadow:
+        0 8px 32px rgba(0, 0, 0, 0.4),
+        inset 0 1px 0 rgba(0, 217, 255, 0.1);
+    backdrop-filter: blur(20px);
+    transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+    position: relative;
+    border-radius: 12px !important;
+}
+
+.glass-card::before {
+    content: '';
+    position: absolute;
     top: 0;
-    z-index: 100;
-    backdrop-filter: blur(10px);
+    left: 0;
+    right: 0;
+    height: 1px;
+    background: linear-gradient(90deg, transparent, rgba(0, 217, 255, 0.5), transparent);
+    opacity: 0;
+    transition: opacity 0.4s;
 }
 
-/* MUI theme overrides */
+.glass-card:hover::before {
+    opacity: 1;
+}
+
+/* MUI Cards */
 .MuiCard-root {
-    transition: all 0.3s ease !important;
+    background-color: rgba(10, 15, 25, 0.6) !important;
+    color: #ffffff !important;
+}
+
+/* Typography */
+.MuiTypography-root {
+    color: #e0e7ff !important;
+    font-weight: 400 !important;
+}
+
+/* Tables */
+.MuiTableCell-root {
+    color: #e0e7ff !important;
+    border-bottom: 1px solid rgba(0, 217, 255, 0.1) !important;
+    transition: all 0.3s ease;
+    font-size: 0.875rem !important;
+    padding: 16px !important;
+}
+
+.MuiTableCell-head {
+    background: rgba(0, 217, 255, 0.05) !important;
+    font-weight: 600 !important;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+    font-size: 0.75rem !important;
+    color: #00d9ff !important;
+}
+
+/* Inputs & labels */
+.MuiInputBase-root,
+.MuiInputLabel-root,
+.MuiSelect-icon {
+    color: #e0e7ff !important;
+}
+
+.MuiInputLabel-root {
+    font-weight: 500 !important;
+}
+
+/* Sleek input fields */
+.MuiOutlinedInput-root {
+    border: 1px solid rgba(0, 217, 255, 0.2) !important;
+    border-radius: 8px !important;
+    background: rgba(0, 0, 0, 0.3) !important;
+    transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+.MuiOutlinedInput-root:hover {
+    border-color: rgba(0, 217, 255, 0.4) !important;
+    background: rgba(0, 0, 0, 0.4) !important;
+    box-shadow: 0 0 20px rgba(0, 217, 255, 0.1);
+}
+
+.MuiOutlinedInput-root.Mui-focused {
+    border-color: #00d9ff !important;
+    background: rgba(0, 0, 0, 0.5) !important;
+    box-shadow: 0 0 30px rgba(0, 217, 255, 0.2);
+}
+
+.MuiOutlinedInput-notchedOutline {
+    border-color: rgba(0, 217, 255, 0.2) !important;
+    transition: all 0.3s ease;
+}
+
+.MuiOutlinedInput-root:hover .MuiOutlinedInput-notchedOutline {
+    border-color: rgba(0, 217, 255, 0.4) !important;
+}
+
+.MuiOutlinedInput-root.Mui-focused .MuiOutlinedInput-notchedOutline {
+    border-color: #00d9ff !important;
+    border-width: 1px !important;
+}
+
+/* Table rows */
+.MuiTableRow-root {
+    transition: all 0.3s ease;
 }
 
 .MuiTableRow-root:hover {
-    transition: background-color 0.2s ease;
+    background-color: rgba(0, 217, 255, 0.05) !important;
+    box-shadow: inset 0 0 20px rgba(0, 217, 255, 0.05);
 }
 
+/* Chips */
 .MuiChip-root {
     font-weight: 600 !important;
+    transition: all 0.3s ease;
+    border-radius: 6px !important;
+    font-size: 0.75rem !important;
+    letter-spacing: 0.3px;
+    text-transform: uppercase;
 }
 
-/* Custom scrollbar for table */
+.MuiChip-root:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 4px 20px rgba(0, 217, 255, 0.3);
+}
+
+/* Scrollbar */
 .MuiTableContainer-root {
     max-height: 600px;
     overflow-y: auto;
 }
 
-/* Responsive adjustments */
+.MuiTableContainer-root::-webkit-scrollbar {
+    width: 6px;
+}
+
+.MuiTableContainer-root::-webkit-scrollbar-track {
+    background: rgba(0, 0, 0, 0.2);
+}
+
+.MuiTableContainer-root::-webkit-scrollbar-thumb {
+    background: linear-gradient(180deg, #00d9ff, #0099cc);
+    border-radius: 3px;
+}
+
+.MuiTableContainer-root::-webkit-scrollbar-thumb:hover {
+    background: linear-gradient(180deg, #00e5ff, #00b8e6);
+    box-shadow: 0 0 10px rgba(0, 217, 255, 0.5);
+}
+
+/* Animations */
+@keyframes pulse {
+
+    0%,
+    100% {
+        opacity: 1;
+    }
+
+    50% {
+        opacity: 0.6;
+    }
+}
+
+@keyframes neonGlow {
+
+    0%,
+    100% {
+        box-shadow: 0 0 5px rgba(255, 0, 100, 0.5), 0 0 10px rgba(255, 0, 100, 0.3);
+    }
+
+    50% {
+        box-shadow: 0 0 20px rgba(255, 0, 100, 0.8), 0 0 30px rgba(255, 0, 100, 0.5);
+    }
+}
+
+@keyframes shake {
+
+    0%,
+    100% {
+        transform: translateX(0);
+    }
+
+    10%,
+    30%,
+    50%,
+    70%,
+    90% {
+        transform: translateX(-3px);
+    }
+
+    20%,
+    40%,
+    60%,
+    80% {
+        transform: translateX(3px);
+    }
+}
+
+.pulse {
+    animation: pulse 2s ease-in-out infinite;
+}
+
+.shake {
+    animation: shake 0.5s ease-in-out infinite;
+}
+
+.hover-lift {
+    transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+.hover-lift:hover {
+    transform: translateY(-4px);
+    box-shadow:
+        0 12px 40px rgba(0, 0, 0, 0.5),
+        0 0 40px rgba(0, 217, 255, 0.2),
+        inset 0 1px 0 rgba(0, 217, 255, 0.2);
+    border-color: rgba(0, 217, 255, 0.6) !important;
+}
+
+/* Buttons */
+.MuiButton-root {
+    transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1) !important;
+    border-radius: 8px !important;
+    font-weight: 600 !important;
+    text-transform: uppercase !important;
+    letter-spacing: 0.5px !important;
+    background: linear-gradient(135deg, rgba(0, 217, 255, 0.1), rgba(0, 153, 204, 0.1)) !important;
+    border: 1px solid rgba(0, 217, 255, 0.3) !important;
+    color: #00d9ff !important;
+}
+
+.MuiButton-root:hover {
+    background: linear-gradient(135deg, rgba(0, 217, 255, 0.2), rgba(0, 153, 204, 0.2)) !important;
+    border-color: #00d9ff !important;
+    box-shadow: 0 0 30px rgba(0, 217, 255, 0.3);
+    transform: translateY(-2px);
+}
+
+/* Header */
+.header {
+    border-bottom: 1px solid rgba(0, 217, 255, 0.2) !important;
+    box-shadow: 0 4px 30px rgba(0, 0, 0, 0.3);
+    backdrop-filter: blur(10px);
+}
+
+/* Neon accent line */
+.neon-line {
+    height: 2px;
+    background: linear-gradient(90deg, transparent, #00d9ff, transparent);
+    box-shadow: 0 0 10px rgba(0, 217, 255, 0.5);
+}
+
+/* Responsive */
 @media (max-width: 600px) {
     .MuiTableCell-root {
-        padding: 8px 4px !important;
+        padding: 12px 8px !important;
         font-size: 0.75rem !important;
+    }
+
+    .hover-lift:hover {
+        transform: translateY(-2px);
     }
 }

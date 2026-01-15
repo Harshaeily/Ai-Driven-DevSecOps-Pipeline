@@ -165,13 +165,13 @@ function App() {
 
     const getSeverityColor = (severity) => {
         const colors = {
-            CRITICAL: '#dc2626',
-            HIGH: '#ea580c',
-            MEDIUM: '#f59e0b',
-            LOW: '#3b82f6',
-            INFO: '#6b7280'
+            CRITICAL: '#ff0080',
+            HIGH: '#ff6b35',
+            MEDIUM: '#00d9ff',
+            LOW: '#60a5fa',
+            INFO: '#a78bfa'
         };
-        return colors[severity] || '#6b7280';
+        return colors[severity] || '#00d9ff';
     };
 
     const getSeverityIcon = (severity) => {
@@ -216,7 +216,7 @@ function App() {
 
     if (!data) {
         return (
-            <Container>
+            <Container maxWidth="xl" sx={{ color: '#ffffff' }}>
                 <Alert severity="error">Failed to load vulnerability data</Alert>
             </Container>
         );
@@ -238,19 +238,36 @@ function App() {
         <div className="App">
             {/* Header */}
             <Box className="header" sx={{
-                background: 'linear-gradient(135deg, #1e293b 0%, #334155 100%)',
-                borderBottom: '1px solid rgba(255,255,255,0.1)',
+                background: 'rgba(10, 10, 15, 0.8)',
+                backdropFilter: 'blur(20px)',
+                borderBottom: '1px solid rgba(0, 217, 255, 0.2)',
                 py: 3,
                 mb: 4
             }}>
                 <Container maxWidth="xl">
                     <Box display="flex" alignItems="center" gap={2}>
-                        <Security sx={{ fontSize: 40, color: '#6366f1' }} />
-                        <Box>
-                            <Typography variant="h4" className="gradient-text" fontWeight="700">
-                                AI-Driven DevSecOps Dashboard
+                        <Security sx={{
+                            fontSize: 40,
+                            color: '#00d9ff',
+                            filter: 'drop-shadow(0 0 10px rgba(0, 217, 255, 0.6))'
+                        }} />
+                        <Box flex={1}>
+                            <Typography
+                                variant="h4"
+                                fontWeight="700"
+                                sx={{
+                                    color: '#ffffff',
+                                    letterSpacing: '-0.5px',
+                                    fontWeight: 700
+                                }}
+                            >
+                                AI-Driven DevSecOps
                             </Typography>
-                            <Typography variant="body2" color="text.secondary">
+                            <Typography variant="body2" sx={{
+                                color: '#00d9ff',
+                                fontWeight: 500,
+                                opacity: 0.9
+                            }}>
                                 Security Vulnerability Analysis & Prioritization
                             </Typography>
                         </Box>
@@ -266,14 +283,14 @@ function App() {
                             <CardContent>
                                 <Box display="flex" justifyContent="space-between" alignItems="center">
                                     <Box>
-                                        <Typography color="text.secondary" variant="body2">
+                                        <Typography sx={{ color: '#ffffff', fontSize: '0.75rem', fontWeight: 600, textTransform: 'uppercase', letterSpacing: '0.5px' }} variant="body2">
                                             Total Findings
                                         </Typography>
-                                        <Typography variant="h4" fontWeight="700">
+                                        <Typography variant="h4" fontWeight="700" sx={{ color: '#00d9ff', mt: 0.5 }}>
                                             {summary.total_vulnerabilities || 0}
                                         </Typography>
                                     </Box>
-                                    <BugReport sx={{ fontSize: 40, color: '#6366f1', opacity: 0.8 }} />
+                                    <BugReport sx={{ fontSize: 40, color: '#00d9ff', opacity: 0.4 }} />
                                 </Box>
                             </CardContent>
                         </Card>
@@ -284,14 +301,14 @@ function App() {
                             <CardContent>
                                 <Box display="flex" justifyContent="space-between" alignItems="center">
                                     <Box>
-                                        <Typography color="text.secondary" variant="body2">
+                                        <Typography sx={{ color: '#ffffff', fontSize: '0.75rem', fontWeight: 600, textTransform: 'uppercase', letterSpacing: '0.5px' }} variant="body2">
                                             After Filtering
                                         </Typography>
-                                        <Typography variant="h4" fontWeight="700">
+                                        <Typography variant="h4" fontWeight="700" sx={{ color: '#00d9ff', mt: 0.5 }}>
                                             {summary.filtered_vulnerabilities || 0}
                                         </Typography>
                                     </Box>
-                                    <FilterList sx={{ fontSize: 40, color: '#10b981', opacity: 0.8 }} />
+                                    <FilterList sx={{ fontSize: 40, color: '#00d9ff', opacity: 0.4 }} />
                                 </Box>
                             </CardContent>
                         </Card>
@@ -302,32 +319,37 @@ function App() {
                             <CardContent>
                                 <Box display="flex" justifyContent="space-between" alignItems="center">
                                     <Box>
-                                        <Typography color="text.secondary" variant="body2">
+                                        <Typography sx={{ color: '#ffffff', fontSize: '0.75rem', fontWeight: 600, textTransform: 'uppercase', letterSpacing: '0.5px' }} variant="body2">
                                             False Positive Rate
                                         </Typography>
-                                        <Typography variant="h4" fontWeight="700">
+                                        <Typography variant="h4" fontWeight="700" sx={{ color: '#00d9ff', mt: 0.5 }}>
                                             {((summary.false_positive_rate || 0) * 100).toFixed(0)}%
                                         </Typography>
                                     </Box>
-                                    <CheckCircle sx={{ fontSize: 40, color: '#f59e0b', opacity: 0.8 }} />
+                                    <CheckCircle sx={{ fontSize: 40, color: '#a78bfa', opacity: 0.4 }} />
                                 </Box>
                             </CardContent>
                         </Card>
                     </Grid>
 
                     <Grid item xs={12} sm={6} md={3}>
-                        <Card className="glass-card hover-lift animate-fade-in" style={{ animationDelay: '0.3s' }}>
+                        <Card className="glass-card hover-lift" style={{ animationDelay: '0.3s' }}>
                             <CardContent>
                                 <Box display="flex" justifyContent="space-between" alignItems="center">
                                     <Box>
-                                        <Typography color="text.secondary" variant="body2">
+                                        <Typography sx={{ color: '#ffffff', fontSize: '0.75rem', fontWeight: 600, textTransform: 'uppercase', letterSpacing: '0.5px' }} variant="body2">
                                             Critical + High
                                         </Typography>
-                                        <Typography variant="h4" fontWeight="700" className={summary.by_severity?.CRITICAL > 0 ? 'pulse' : ''}>
+                                        <Typography
+                                            variant="h4"
+                                            fontWeight="700"
+                                            className={summary.by_severity?.CRITICAL > 0 ? 'shake' : ''}
+                                            sx={{ color: '#ff0080', mt: 0.5 }}
+                                        >
                                             {(summary.by_severity?.CRITICAL || 0) + (summary.by_severity?.HIGH || 0)}
                                         </Typography>
                                     </Box>
-                                    <Error sx={{ fontSize: 40, color: '#dc2626', opacity: 0.8 }} />
+                                    <Error sx={{ fontSize: 40, color: '#ff0080', opacity: 0.4 }} />
                                 </Box>
                             </CardContent>
                         </Card>
@@ -348,10 +370,7 @@ function App() {
                                             data={severityData}
                                             cx="50%"
                                             cy="50%"
-                                            labelLine={false}
-                                            label={({ name, value }) => `${name}: ${value}`}
                                             outerRadius={100}
-                                            fill="#8884d8"
                                             dataKey="value"
                                         >
                                             {severityData.map((entry, index) => (
@@ -359,8 +378,10 @@ function App() {
                                             ))}
                                         </Pie>
                                         <Tooltip />
+                                        <Legend />
                                     </PieChart>
                                 </ResponsiveContainer>
+
                             </CardContent>
                         </Card>
                     </Grid>
@@ -520,10 +541,18 @@ function App() {
                                                 </Typography>
                                             </TableCell>
                                             <TableCell>
-                                                <Chip label={vuln.cwe || 'N/A'} size="small" variant="outlined" />
+                                                <Chip
+                                                    label={vuln.cwe || 'N/A'}
+                                                    size="small"
+                                                    variant="outlined"
+                                                    sx={{
+                                                        color: '#ffffff',
+                                                        borderColor: 'rgba(255, 255, 255, 0.5)'
+                                                    }}
+                                                />
                                             </TableCell>
                                             <TableCell>
-                                                <Typography variant="body2" color="text.secondary">
+                                                <Typography variant="body2" sx={{ color: '#ffffff' }}>
                                                     {vuln.location?.file}:{vuln.location?.line_start}
                                                 </Typography>
                                             </TableCell>
