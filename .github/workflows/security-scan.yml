@@ -466,24 +466,12 @@ jobs:
             echo "| Priority | Title | Severity | Risk Score |" >> $GITHUB_STEP_SUMMARY
             echo "|----------|-------|----------|------------|" >> $GITHUB_STEP_SUMMARY
             
-            # Extract top 5 vulnerabilities from top_priorities array using Python
-            cat > /tmp/parse_vulns.py << 'PYEOF'
-import json
-import sys
-try:
-    with open('aggregated/processed/ai_analysis.json', 'r') as f:
-        data = json.load(f)
-    for vuln in data.get('top_priorities', [])[:5]:
-        title = vuln.get('title', 'Unknown')[:50]
-        severity = vuln.get('severity', 'UNKNOWN')
-        risk = vuln.get('risk_score', 0)
-        priority = vuln.get('priority', 'N/A')
-        print(f'| P{priority} | {title}... | {severity} | {risk:.2f} |')
-except Exception as e:
-    print('| - | Error parsing vulnerabilities | - | - |', file=sys.stderr)
-PYEOF
-            python3 /tmp/parse_vulns.py >> $GITHUB_STEP_SUMMARY 2>/dev/null || echo "| - | Unable to parse top vulnerabilities | - | - |" >> $GITHUB_STEP_SUMMARY
-            rm -f /tmp/parse_vulns.py
+            # Extract top 5 vulnerabilities using jq
+            if command -v jq &> /dev/null; then
+              jq -r '.top_priorities[:5] | .[] | "| P\(.priority) | \(.title[:50])... | \(.severity) | \(.risk_score) |"' aggregated/processed/ai_analysis.json >> $GITHUB_STEP_SUMMARY 2>/dev/null || echo "| - | Unable to parse vulnerabilities | - | - |" >> $GITHUB_STEP_SUMMARY
+            else
+              echo "| - | jq not available | - | - |" >> $GITHUB_STEP_SUMMARY
+            fi
             
             echo "" >> $GITHUB_STEP_SUMMARY
           fi
