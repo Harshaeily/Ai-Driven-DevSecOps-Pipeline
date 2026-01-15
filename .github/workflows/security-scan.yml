@@ -466,8 +466,8 @@ jobs:
             echo "| Priority | Title | Severity | Risk Score |" >> $GITHUB_STEP_SUMMARY
             echo "|----------|-------|----------|------------|" >> $GITHUB_STEP_SUMMARY
             
-            # Extract top 5 vulnerabilities from top_priorities array
-            python3 -c "
+            # Extract top 5 vulnerabilities from top_priorities array using Python
+            cat > /tmp/parse_vulns.py << 'PYEOF'
 import json
 import sys
 try:
@@ -480,8 +480,10 @@ try:
         priority = vuln.get('priority', 'N/A')
         print(f'| P{priority} | {title}... | {severity} | {risk:.2f} |')
 except Exception as e:
-    print(f'| - | Error parsing vulnerabilities | - | - |', file=sys.stderr)
-" >> $GITHUB_STEP_SUMMARY 2>/dev/null || echo "| - | Unable to parse top vulnerabilities | - | - |" >> $GITHUB_STEP_SUMMARY
+    print('| - | Error parsing vulnerabilities | - | - |', file=sys.stderr)
+PYEOF
+            python3 /tmp/parse_vulns.py >> $GITHUB_STEP_SUMMARY 2>/dev/null || echo "| - | Unable to parse top vulnerabilities | - | - |" >> $GITHUB_STEP_SUMMARY
+            rm -f /tmp/parse_vulns.py
             
             echo "" >> $GITHUB_STEP_SUMMARY
           fi
