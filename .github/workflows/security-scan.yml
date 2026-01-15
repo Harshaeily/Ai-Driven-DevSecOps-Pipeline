@@ -440,24 +440,11 @@ jobs:
             echo "## 🎯 Vulnerability Analysis" >> $GITHUB_STEP_SUMMARY
             echo "" >> $GITHUB_STEP_SUMMARY
             
-            # Parse JSON and extract key metrics from summary.by_severity
+            # Parse JSON and extract key metrics
             TOTAL=$(grep -o '"total_vulnerabilities":[0-9]*' aggregated/processed/ai_analysis.json | grep -o '[0-9]*' | head -1)
-            CRITICAL=$(grep -o '"CRITICAL":[0-9]*' aggregated/processed/ai_analysis.json | grep -o '[0-9]*' | head -1)
-            HIGH=$(grep -o '"HIGH":[0-9]*' aggregated/processed/ai_analysis.json | grep -o '[0-9]*' | head -1)
-            MEDIUM=$(grep -o '"MEDIUM":[0-9]*' aggregated/processed/ai_analysis.json | grep -o '[0-9]*' | head -1)
-            LOW=$(grep -o '"LOW":[0-9]*' aggregated/processed/ai_analysis.json | grep -o '[0-9]*' | head -1)
             FP_RATE=$(grep -o '"false_positive_rate":[0-9.]*' aggregated/processed/ai_analysis.json | grep -o '[0-9.]*' | head -1)
             
-            echo "### Summary" >> $GITHUB_STEP_SUMMARY
-            echo "- **Total Vulnerabilities Found:** ${TOTAL:-0}" >> $GITHUB_STEP_SUMMARY
-            echo "- **False Positive Rate:** ${FP_RATE:-0}%" >> $GITHUB_STEP_SUMMARY
-            echo "" >> $GITHUB_STEP_SUMMARY
-            
-            echo "### Severity Breakdown" >> $GITHUB_STEP_SUMMARY
-            echo "- 🔴 **Critical:** ${CRITICAL:-0}" >> $GITHUB_STEP_SUMMARY
-            echo "- 🟠 **High:** ${HIGH:-0}" >> $GITHUB_STEP_SUMMARY
-            echo "- 🟡 **Medium:** ${MEDIUM:-0}" >> $GITHUB_STEP_SUMMARY
-            echo "- 🟢 **Low:** ${LOW:-0}" >> $GITHUB_STEP_SUMMARY
+            echo "**Total Vulnerabilities Found:** ${TOTAL:-0} | **False Positive Rate:** ${FP_RATE:-0}%" >> $GITHUB_STEP_SUMMARY
             echo "" >> $GITHUB_STEP_SUMMARY
             
             # Show top 5 vulnerabilities with actual data
