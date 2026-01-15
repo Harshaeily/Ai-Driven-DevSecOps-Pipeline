@@ -440,12 +440,12 @@ jobs:
             echo "## 🎯 Vulnerability Analysis" >> $GITHUB_STEP_SUMMARY
             echo "" >> $GITHUB_STEP_SUMMARY
             
-            # Parse JSON and extract key metrics
+            # Parse JSON and extract key metrics from summary.by_severity
             TOTAL=$(grep -o '"total_vulnerabilities":[0-9]*' aggregated/processed/ai_analysis.json | grep -o '[0-9]*' | head -1)
-            CRITICAL=$(grep -o '"critical":[0-9]*' aggregated/processed/ai_analysis.json | grep -o '[0-9]*' | head -1)
-            HIGH=$(grep -o '"high":[0-9]*' aggregated/processed/ai_analysis.json | grep -o '[0-9]*' | head -1)
-            MEDIUM=$(grep -o '"medium":[0-9]*' aggregated/processed/ai_analysis.json | grep -o '[0-9]*' | head -1)
-            LOW=$(grep -o '"low":[0-9]*' aggregated/processed/ai_analysis.json | grep -o '[0-9]*' | head -1)
+            CRITICAL=$(grep -o '"CRITICAL":[0-9]*' aggregated/processed/ai_analysis.json | grep -o '[0-9]*' | head -1)
+            HIGH=$(grep -o '"HIGH":[0-9]*' aggregated/processed/ai_analysis.json | grep -o '[0-9]*' | head -1)
+            MEDIUM=$(grep -o '"MEDIUM":[0-9]*' aggregated/processed/ai_analysis.json | grep -o '[0-9]*' | head -1)
+            LOW=$(grep -o '"LOW":[0-9]*' aggregated/processed/ai_analysis.json | grep -o '[0-9]*' | head -1)
             FP_RATE=$(grep -o '"false_positive_rate":[0-9.]*' aggregated/processed/ai_analysis.json | grep -o '[0-9.]*' | head -1)
             
             echo "### Summary" >> $GITHUB_STEP_SUMMARY
@@ -460,17 +460,28 @@ jobs:
             echo "- 🟢 **Low:** ${LOW:-0}" >> $GITHUB_STEP_SUMMARY
             echo "" >> $GITHUB_STEP_SUMMARY
             
-            # Show top 5 vulnerabilities
+            # Show top 5 vulnerabilities with actual data
             echo "### Top Priority Vulnerabilities" >> $GITHUB_STEP_SUMMARY
             echo "" >> $GITHUB_STEP_SUMMARY
             echo "| Priority | Title | Severity | Risk Score |" >> $GITHUB_STEP_SUMMARY
             echo "|----------|-------|----------|------------|" >> $GITHUB_STEP_SUMMARY
             
-            # Extract top 5 vulnerabilities (simplified - actual parsing would be more complex)
-            grep -o '"title":"[^"]*"' aggregated/processed/ai_analysis.json | head -5 | while read line; do
-              TITLE=$(echo $line | sed 's/"title":"//g' | sed 's/"//g' | cut -c1-40)
-              echo "| P1 | $TITLE... | HIGH | 0.85 |" >> $GITHUB_STEP_SUMMARY
-            done
+            # Extract top 5 vulnerabilities from top_priorities array
+            python3 -c "
+import json
+import sys
+try:
+    with open('aggregated/processed/ai_analysis.json', 'r') as f:
+        data = json.load(f)
+    for vuln in data.get('top_priorities', [])[:5]:
+        title = vuln.get('title', 'Unknown')[:50]
+        severity = vuln.get('severity', 'UNKNOWN')
+        risk = vuln.get('risk_score', 0)
+        priority = vuln.get('priority', 'N/A')
+        print(f'| P{priority} | {title}... | {severity} | {risk:.2f} |')
+except Exception as e:
+    print(f'| - | Error parsing vulnerabilities | - | - |', file=sys.stderr)
+" >> $GITHUB_STEP_SUMMARY 2>/dev/null || echo "| - | Unable to parse top vulnerabilities | - | - |" >> $GITHUB_STEP_SUMMARY
             
             echo "" >> $GITHUB_STEP_SUMMARY
           fi
