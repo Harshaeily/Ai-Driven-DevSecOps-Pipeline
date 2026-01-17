@@ -166,9 +166,9 @@ function App() {
     const getSeverityColor = (severity) => {
         const colors = {
             CRITICAL: '#ff0080',
-            HIGH: '#ff6b35',
-            MEDIUM: '#00d9ff',
-            LOW: '#60a5fa',
+            HIGH: '#ff8c42',
+            MEDIUM: '#f59e0b',
+            LOW: '#10b981',
             INFO: '#a78bfa'
         };
         return colors[severity] || '#00d9ff';
